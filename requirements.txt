@@ -1,0 +1,27 @@
+# נרי – דרישות חבילות
+# התקנה: pip install -r requirements.txt
+
+# ─── OpenAI (STT + LLM) ───────────────────────────────────────────────────────
+openai>=1.30.0
+
+# ─── Azure TTS ────────────────────────────────────────────────────────────────
+azure-cognitiveservices-speech>=1.38.0
+
+# ─── הקלטה ועיבוד שמע ────────────────────────────────────────────────────────
+sounddevice>=0.4.6
+scipy>=1.13.0
+
+# ─── Voice Activity Detection ─────────────────────────────────────────────────
+# הערה: webrtcvad דורש Microsoft C++ Build Tools ב-Windows
+# הורד מ: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+webrtcvad>=2.0.10
+
+# ─── Google APIs (Calendar + Gmail) ──────────────────────────────────────────
+google-api-python-client>=2.130.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
+
+# ─── שרת FastAPI (mobile API) ─────────────────────────────────────────────────
+fastapi>=0.111.0
+uvicorn>=0.30.0
+python-multipart>=0.0.9
