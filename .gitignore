@@ -1,0 +1,8 @@
+app/credentials.json 
+app/token.json 
+app/gmail_token.json 
+app/__pycache__/ 
+app/core/__pycache__/ 
+app/actions/__pycache__/ 
+*.wav 
+*.pyc 

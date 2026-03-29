@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile config.py)",
+      "Bash(python -m py_compile core/name_detector.py)",
+      "Bash(python -m py_compile core/system_mode_manager.py)",
+      "Bash(python -m py_compile core/vad_listener.py)",
+      "Bash(python -m py_compile actions/calendar_action.py)",
+      "Bash(python -m py_compile actions/gmail_action.py)",
+      "Bash(python -m py_compile morning_brief.py)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''setup_google_credentials.py''\\).read\\(\\)\\); print\\(''OK''\\)\")",
+      "Bash(python -m py_compile setup_google_credentials.py)",
+      "Bash(python -c \"import json; t=json.load\\(open\\(''C:/Users/user/lachshan/app/token.json''\\)\\); print\\(t.get\\(''scopes'', t.get\\(''scope'', ''no scope field''\\)\\)\\)\")",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) for f in [''actions/gmail_action.py'', ''core/intent_router.py'']]; print\\(''OK''\\)\")",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f, encoding=''utf-8''\\).read\\(\\)\\) for f in [''actions/gmail_action.py'', ''core/intent_router.py'']]; print\\(''OK''\\)\")",
+      "Bash(python setup_google_credentials.py)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\(''token.json''\\)\\); print\\(''scopes:'', d.get\\(''scopes'', d.get\\(''scope'', ''N/A''\\)\\)\\)\")",
+      "Bash(python -m py_compile core/intent_router.py)",
+      "Bash(python -m py_compile nari_main.py)",
+      "Bash(python -m py_compile core/google_auth.py)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(pip install pytest -q)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(''nari_main.py'', encoding=''utf-8''\\).read\\(\\)\\); print\\(''syntax OK''\\)\")",
+      "Bash(python -c \":*)"
+    ]
+  }
+}

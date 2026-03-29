@@ -1,0 +1,108 @@
+לחשן v0.8 התחיל
+
+--- סבב 1/5 ---
+מקליט 8 שניות
+שולח לתמלול
+
+תמלול:
+מתי בגין נולד?
+
+Trigger Engine Decision:
+InterventionDecision(should_intervene=True, selected_trigger_id='information_question', selected_trigger_version='1.3', selected_candidate=WhisperCandidate(text='מנחם בגין: 1913', style='brief_direct_helpful', estimated_chars=15, source_trigger_id='information_question', target_topic='מנחם בגין'), confidence=0.912, intervention_score=9.15, blocked_by=[], decision_reason='Top-ranked candidate selected')
+Detected Entities: ['מנחם בגין']
+Recent Interventions In Memory: 0
+🧠 Trigger Whisper: מנחם בגין: 1913
+
+עצת הלחשן:
+בגין נולד ב-16 באוגוסט 1913.
+🎧 לחשן: בגין נולד ב-16 באוגוסט 1913.
+
+--- סבב 2/5 ---
+מקליט 8 שניות
+שולח לתמלול
+
+תמלול:
+בינתיים.
+
+Trigger Engine Decision:
+InterventionDecision(should_intervene=False, selected_trigger_id=None, selected_trigger_version=None, selected_candidate=None, confidence=None, intervention_score=None, blocked_by=['no_valid_candidate'], decision_reason='No trigger passed thresholds and guardrails')
+Detected Entities: []
+Recent Interventions In Memory: 1
+🧠 Trigger Whisper: [no intervention]
+
+תקציר ביניים:
+מה נסגר: מחכים לתשובה על תאריך הלידה של בגין.  
+מה פתוח: לא התקבלה עדיין תשובה לשאלה.
+🎧 לחשן: מה נסגר: מחכים לתשובה על תאריך הלידה של בגין.  
+מה פתוח: לא התקבלה עדיין תשובה לשאלה.
+
+--- סבב 3/5 ---
+מקליט 8 שניות
+שולח לתמלול
+
+תמלול:
+השיחה היא בעברית. נא לתמלל בעברית.
+
+Trigger Engine Decision:
+InterventionDecision(should_intervene=False, selected_trigger_id=None, selected_trigger_version=None, selected_candidate=None, confidence=None, intervention_score=None, blocked_by=['no_valid_candidate'], decision_reason='No trigger passed thresholds and guardrails')
+Detected Entities: []
+Recent Interventions In Memory: 1
+🧠 Trigger Whisper: [no intervention]
+
+עצת הלחשן:
+תשקול לקחת הפסקות קצרות במהלך היום לעזור בריכוז.
+🎧 לחשן: תשקול לקחת הפסקות קצרות במהלך היום לעזור בריכוז.
+
+--- סבב 4/5 ---
+מקליט 8 שניות
+שולח לתמלול
+
+תמלול:
+גינולת.
+
+Trigger Engine Decision:
+InterventionDecision(should_intervene=False, selected_trigger_id=None, selected_trigger_version=None, selected_candidate=None, confidence=None, intervention_score=None, blocked_by=['no_valid_candidate'], decision_reason='No trigger passed thresholds and guardrails')
+Detected Entities: []
+Recent Interventions In Memory: 1
+🧠 Trigger Whisper: [no intervention]
+
+תקציר ביניים:
+- מה נסגר: השיחה עוסקת באירועים הקשורים במנחם בגין.
+- מה פתוח: מתן מידע נוסף על בגין והקשרה.
+🎧 לחשן: - מה נסגר: השיחה עוסקת באירועים הקשורים במנחם בגין.
+- מה פתוח: מתן מידע נוסף על בגין והקשרה.
+
+--- סבב 5/5 ---
+מקליט 8 שניות
+שולח לתמלול
+
+תמלול:
+אם אנחנו בגיל נולד.
+
+Trigger Engine Decision:
+InterventionDecision(should_intervene=False, selected_trigger_id=None, selected_trigger_version=None, selected_candidate=None, confidence=None, intervention_score=None, blocked_by=['no_valid_candidate'], decision_reason='No trigger passed thresholds and guardrails')
+Detected Entities: []
+Recent Interventions In Memory: 1
+🧠 Trigger Whisper: [no intervention]
+
+עצת הלחשן:
+תמיד תהיה פתוח ללמוד ולהתפתח.
+🎧 לחשן: תמיד תהיה פתוח ללמוד ולהתפתח.
+
+=== סיום השיחה ===
+
+סיכום סופי:
+### סיכום השיחה:
+
+1. **מה נסגר**: אין מידע ברור על תאריך הלידה של בגין, והשיחה נראית מבולבלת ולא ממוקדת.
+
+2. **מה פתוח**: עדיין לא ברור מתי בגין נולד, ויש צורך לברר את המידע הזה.
+
+3. **מה כדאי לעשות**: כדאי לחפש מידע מוסמך או לבדוק מקורות אמינים כדי להשיג את תאריך הלידה המדויק של בגין.
+🎧 לחשן: ### סיכום השיחה:
+
+1. **מה נסגר**: אין מידע ברור על תאריך הלידה של בגין, והשיחה נראית מבולבלת ולא ממוקדת.
+
+2. **מה פתוח**: עדיין לא ברור מתי בגין נולד, ויש צורך לברר את המידע הזה.
+
+3. **מה כדאי לעשות**: כדאי לחפש מידע מוסמך או לבדוק מקורות אמינים כדי להשיג את תאריך הלידה המדויק של בגין.
