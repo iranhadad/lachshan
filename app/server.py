@@ -195,7 +195,22 @@ def _execute_command(text: str) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Endpoints
 # ═══════════════════════════════════════════════════════════════════════════════
-
+@app.post("/speak")
+def speak(req: CommandRequest):
+    """ממיר טקסט לאודיו עברי דרך OpenAI TTS ומחזיר mp3."""
+    if not req.text.strip():
+        raise HTTPException(status_code=400, detail="טקסט ריק")
+    try:
+        response = _get_client().audio.speech.create(
+            model="tts-1",
+            voice="nova",
+            input=req.text.strip(),
+        )
+        audio_bytes = response.content
+        from fastapi.responses import Response
+        return Response(content=audio_bytes, media_type="audio/mpeg")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"שגיאת TTS: {exc}")
 @app.get("/health")
 def health():
     return {"status": "ok"}
