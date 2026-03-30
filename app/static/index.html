@@ -317,28 +317,7 @@ async function checkServer() {
     }
   }
 }
-
-// ── TTS ──
-function speak(text) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang  = 'he-IL';
-  utt.rate  = 1.05;
-  utt.pitch = 1;
-
-  // נסה למצוא קול עברי
-  const voices  = window.speechSynthesis.getVoices();
-  const heVoice = voices.find(v => v.lang && v.lang.startsWith('he'));
-  if (heVoice) utt.voice = heVoice;
-
-  utt.onstart = () => setSpeaking(true);
-  utt.onend   = () => setSpeaking(false);
-  utt.onerror = () => setSpeaking(false);
-
-  window.speechSynthesis.speak(utt);
-}
+//- TTS -
 
 function setSpeaking(val) {
   speaking = val;
