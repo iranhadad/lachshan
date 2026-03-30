@@ -266,26 +266,56 @@ def evaluate(context: RuntimeContext) -> TriggerEvaluationResult:
     if joke_risk_score > 0.70:
         blocked_by.append("joke_context")
 
-    if matched and answer:
-        whisper_text = build_information_question_whisper(answer=answer, entity=entity)
-        candidate_whisper = WhisperCandidate(
-            text=whisper_text,
-            style=definition.output_policy.style,
-            estimated_chars=len(whisper_text),
-            source_trigger_id=definition.id,
-            target_topic=entity,
-        )
-    else:
-        blocked_by.append("no_answer_available")
+    if matched and len(blocked_by) == 0:
+        if not answer:
+            # אין תשובה מקומית — שאל את GPT
+            try:
+                import os
+                from openai import OpenAI
+                client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "אתה עוזר שלוחש מידע עובדתי קצר. "
+                                "ענה בעברית במשפט אחד קצר בלבד — עד 15 מילים. "
+                                "אם אינך יודע — ענה 'לא ידוע'."
+                            ),
+                        },
+                        {"role": "user", "content": text},
+                    ],
+                    max_tokens=60,
+                    temperature=0.2,
+                )
+                answer = response.choices[0].message.content.strip()
+                entity = extracted_entity
+            except Exception:
+                answer = None
+
+        if answer and answer != "לא ידוע":
+            whisper_text = build_information_question_whisper(
+                answer=answer, entity=entity
+            )
+            candidate_whisper = WhisperCandidate(
+                text=whisper_text,
+                style=definition.output_policy.style,
+                estimated_chars=len(whisper_text),
+                source_trigger_id=definition.id,
+                target_topic=entity,
+            )
+        else:
+            blocked_by.append("no_answer_available")
 
     if not matched:
         reasoning_summary = "לא זוהתה שאלה עובדתית ישירה ברמת ביטחון מספקת"
-    elif matched and not answer:
-        reasoning_summary = "זוהתה שאלה עובדתית, אך לא נמצאה תשובה במאגר המקומי"
+    elif matched and candidate_whisper is None:
+        reasoning_summary = "זוהתה שאלה עובדתית, אך לא נמצאה תשובה"
     else:
-        reasoning_summary = "זוהתה שאלה עובדתית ונמצאה תשובה במאגר המקומי"
+        reasoning_summary = "זוהתה שאלה עובדתית ונמצאה תשובה"
 
-    decision = "emit" if matched and len(blocked_by) == 0 else "skip"
+    decision = "emit" if matched and len(blocked_by) == 0 and candidate_whisper else "skip"
 
     return TriggerEvaluationResult(
         trigger_id=definition.id,
