@@ -110,11 +110,8 @@
     background: rgba(255,255,255,0.04); font-size: 12px; color: var(--muted);
     text-align: center; border-style: dashed; border-radius: 10px;
   }
-
-  /* speaking animation on assistant bubble */
   .msg.assistant.speaking .bubble {
     border-color: rgba(110,231,183,0.5);
-    box-shadow: 0 0 12px rgba(110,231,183,0.15);
     animation: speakPulse 1.5s ease-in-out infinite;
   }
   @keyframes speakPulse {
@@ -123,24 +120,19 @@
   }
 
   .silence-bar-wrap {
-    margin: 0 16px 4px;
-    height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;
-    opacity: 0; transition: opacity 0.3s;
+    margin: 4px 16px; height: 3px; background: rgba(255,255,255,0.06);
+    border-radius: 2px; overflow: hidden; opacity: 0; transition: opacity 0.3s;
   }
   .silence-bar-wrap.visible { opacity: 1; }
-  .silence-bar {
-    height: 100%; background: var(--accent); border-radius: 2px;
-    width: 100%; transition: width linear;
-  }
+  .silence-bar { height: 100%; background: var(--accent); border-radius: 2px; width: 100%; }
 
   .interim {
     font-size: 14px; color: var(--muted); font-style: italic;
-    padding: 4px 16px; text-align: center; min-height: 24px;
+    padding: 4px 16px; text-align: center; min-height: 22px;
   }
 
   .controls {
-    flex-shrink: 0; padding: 10px 16px 14px;
-    border-top: 1px solid var(--border);
+    flex-shrink: 0; padding: 10px 16px 14px; border-top: 1px solid var(--border);
     backdrop-filter: blur(12px); background: rgba(10,10,15,0.6);
   }
   .mode-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
@@ -153,7 +145,7 @@
 
   .mic-row { display: flex; align-items: center; justify-content: center; gap: 16px; }
   .mic-btn {
-    position: relative; width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer;
+    width: 76px; height: 76px; border-radius: 50%; border: none; cursor: pointer;
     background: linear-gradient(135deg, var(--accent), #9b59f5);
     transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
@@ -167,9 +159,6 @@
     50%  { box-shadow: 0 0 0 18px rgba(248,113,113,0.1); }
     100% { box-shadow: 0 0 0 8px var(--recording-glow); }
   }
-  .mic-btn svg { width: 30px; height: 30px; }
-
-  /* speaking state on mic button */
   .mic-btn.speaking {
     background: linear-gradient(135deg, var(--success), #34d399);
     animation: speakMic 1.5s ease-in-out infinite;
@@ -178,13 +167,14 @@
     0%,100% { box-shadow: 0 0 0 6px rgba(110,231,183,0.2); }
     50%      { box-shadow: 0 0 0 16px rgba(110,231,183,0.05); }
   }
+  .mic-btn svg { width: 30px; height: 30px; }
 
   .side-btn {
     width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border);
     background: var(--surface); color: var(--muted); cursor: pointer;
     display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 18px;
   }
-  .side-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.07); }
+  .side-btn:active { transform: scale(0.9); }
 
   .rec-timer {
     font-size: 12px; color: var(--danger); font-weight: 600; letter-spacing: 0.08em;
@@ -195,17 +185,15 @@
   .text-row { display: flex; gap: 8px; margin-top: 10px; }
   .text-row input {
     flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px 14px; color: var(--text); font-family: 'Heebo', sans-serif; font-size: 15px;
-    outline: none; transition: border-color 0.2s;
+    padding: 12px 14px; color: var(--text); font-family: 'Heebo', sans-serif;
+    font-size: 15px; outline: none; transition: border-color 0.2s;
   }
   .text-row input:focus { border-color: rgba(124,109,248,0.5); }
   .text-row button {
     padding: 0 20px; border-radius: 12px; border: none;
     background: linear-gradient(135deg, var(--accent), #9b59f5);
-    color: #fff; font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 700;
-    cursor: pointer; transition: opacity 0.2s;
+    color: #fff; font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer;
   }
-  .text-row button:active { opacity: 0.8; }
 
   .toast {
     position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
@@ -254,7 +242,7 @@
   <div class="transcript-area" id="transcriptArea">
     <div class="empty-state" id="emptyState">
       <div class="empty-icon">🎙️</div>
-      <p>לחץ על הכפתור ודבר,<br>נרי תעצור אוטומטית כשתשתוק</p>
+      <p>לחץ על הכפתור ודבר<br>נרי תעצור אוטומטית כשתשתוק</p>
     </div>
   </div>
 
@@ -295,7 +283,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── STATE ──────────────────────────────────────────────────────────────────
+// ── STATE ──
 let mediaRecorder = null;
 let audioChunks   = [];
 let recording     = false;
@@ -303,13 +291,12 @@ let speaking      = false;
 let recSeconds    = 0;
 let recInterval   = null;
 let silenceTimer  = null;
-let silenceStart  = null;
-let silenceBarAnim= null;
 let currentMode   = 'voice';
 let msgCount      = 0;
-const SILENCE_TIMEOUT = 2000; // 2 שניות שתיקה → עצירה אוטומטית
+let lastSpeakingMsgId = null;
+const SILENCE_MS  = 2000;
 
-// ── SERVER ─────────────────────────────────────────────────────────────────
+// ── SERVER ──
 function getServer() { return document.getElementById('serverUrl').value.replace(/\/$/, ''); }
 
 async function checkServer() {
@@ -331,49 +318,50 @@ async function checkServer() {
   }
 }
 
-// ── TTS ────────────────────────────────────────────────────────────────────
-function speak(text, onDone) {
-  if (!window.speechSynthesis) { onDone && onDone(); return; }
+// ── TTS ──
+function speak(text) {
+  if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
+
   const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'he-IL';
-  utt.rate = 1.05;
+  utt.lang  = 'he-IL';
+  utt.rate  = 1.05;
   utt.pitch = 1;
 
   // נסה למצוא קול עברי
-  const voices = window.speechSynthesis.getVoices();
-  const heVoice = voices.find(v => v.lang.startsWith('he'));
+  const voices  = window.speechSynthesis.getVoices();
+  const heVoice = voices.find(v => v.lang && v.lang.startsWith('he'));
   if (heVoice) utt.voice = heVoice;
 
-  utt.onend = () => { setSpeaking(false); onDone && onDone(); };
-  utt.onerror = () => { setSpeaking(false); onDone && onDone(); };
+  utt.onstart = () => setSpeaking(true);
+  utt.onend   = () => setSpeaking(false);
+  utt.onerror = () => setSpeaking(false);
 
-  setSpeaking(true);
   window.speechSynthesis.speak(utt);
 }
 
 function setSpeaking(val) {
   speaking = val;
   const btn = document.getElementById('micBtn');
-  if (val) {
-    btn.classList.add('speaking');
-    // הדגש bubble אחרון של assistant
-    const bubbles = document.querySelectorAll('.msg.assistant');
-    const last = bubbles[bubbles.length - 1];
-    if (last) { last.classList.add('speaking'); setTimeout(() => last.classList.remove('speaking'), 8000); }
-  } else {
-    btn.classList.remove('speaking');
+  btn.classList.toggle('speaking', val);
+
+  // הדגש/הסר הדגשה מה-bubble האחרון
+  if (lastSpeakingMsgId) {
+    document.getElementById(lastSpeakingMsgId)?.classList.remove('speaking');
+  }
+  if (val && lastSpeakingMsgId) {
+    document.getElementById(lastSpeakingMsgId)?.classList.add('speaking');
   }
 }
 
-// ── MIC BUTTON ────────────────────────────────────────────────────────────
+// ── MIC BUTTON ──
 function handleMicBtn() {
   if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
   if (recording) { stopRecording(); return; }
   startRecording();
 }
 
-// ── RECORDING ──────────────────────────────────────────────────────────────
+// ── RECORDING ──
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -384,30 +372,35 @@ async function startRecording() {
     for (const m of mimeTypes) { if (MediaRecorder.isTypeSupported(m)) { mimeType = m; break; } }
 
     mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+
     mediaRecorder.ondataavailable = e => {
-      if (e.data.size > 0) {
+      if (e.data && e.data.size > 0) {
         audioChunks.push(e.data);
-        resetSilenceTimer(); // כל chunk עם נתונים = יש קול
+        resetSilenceTimer(); // יש קול — אפס שתיקה
       }
     };
-    mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); processAudio(); };
-    mediaRecorder.start(300); // chunk כל 300ms
 
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      processAudio();
+    };
+
+    mediaRecorder.start(300); // chunk כל 300ms
     recording = true;
     recSeconds = 0;
+
     document.getElementById('micBtn').classList.add('recording');
     document.getElementById('recTimer').classList.add('visible');
 
     recInterval = setInterval(() => {
       recSeconds++;
-      const m = Math.floor(recSeconds/60), s = recSeconds%60;
-      document.getElementById('recTimer').textContent = m + ':' + String(s).padStart(2,'0');
+      const m = Math.floor(recSeconds / 60), s = recSeconds % 60;
+      document.getElementById('recTimer').textContent = m + ':' + String(s).padStart(2, '0');
       if (recSeconds >= 60) stopRecording();
     }, 1000);
 
-    // התחל מד שתיקה
     startSilenceTimer();
-    showToast('🔴 מקליט — ידבר ואעצור אוטומטית');
+    showToast('🔴 מקליט — יעצור אוטומטית בשתיקה');
   } catch(e) {
     showToast('❌ אין גישה למיקרופון: ' + e.message);
   }
@@ -426,23 +419,17 @@ function stopRecording() {
   mediaRecorder.stop();
 }
 
-// ── SILENCE DETECTION ──────────────────────────────────────────────────────
+// ── SILENCE ──
 function startSilenceTimer() {
   clearTimeout(silenceTimer);
-  silenceStart = Date.now();
   showSilenceBar();
-  silenceTimer = setTimeout(() => {
-    if (recording) { showToast('🔇 זוהתה שתיקה — עוצר'); stopRecording(); }
-  }, SILENCE_TIMEOUT);
+  silenceTimer = setTimeout(() => { if (recording) stopRecording(); }, SILENCE_MS);
 }
 
 function resetSilenceTimer() {
   clearTimeout(silenceTimer);
-  silenceStart = Date.now();
   showSilenceBar();
-  silenceTimer = setTimeout(() => {
-    if (recording) stopRecording();
-  }, SILENCE_TIMEOUT);
+  silenceTimer = setTimeout(() => { if (recording) stopRecording(); }, SILENCE_MS);
 }
 
 function showSilenceBar() {
@@ -451,10 +438,11 @@ function showSilenceBar() {
   wrap.classList.add('visible');
   bar.style.transition = 'none';
   bar.style.width = '100%';
-  // אנימציה smooth
   requestAnimationFrame(() => {
-    bar.style.transition = `width ${SILENCE_TIMEOUT}ms linear`;
-    bar.style.width = '0%';
+    requestAnimationFrame(() => {
+      bar.style.transition = `width ${SILENCE_MS}ms linear`;
+      bar.style.width = '0%';
+    });
   });
 }
 
@@ -466,11 +454,11 @@ function hideSilenceBar() {
   bar.style.width = '100%';
 }
 
-// ── PROCESS AUDIO ──────────────────────────────────────────────────────────
+// ── PROCESS AUDIO ──
 async function processAudio() {
   if (audioChunks.length === 0) { showToast('⚠️ לא הוקלט שמע'); return; }
   const blob = new Blob(audioChunks, { type: audioChunks[0]?.type || 'audio/webm' });
-  if (blob.size < 1000) { showToast('⚠️ הקלטה קצרה מדי'); return; }
+  if (blob.size < 500) { showToast('⚠️ הקלטה קצרה מדי'); return; }
 
   setInterim('מתמלל...');
   const fd = new FormData();
@@ -493,9 +481,9 @@ async function processAudio() {
   sendCommand(transcript);
 }
 
-// ── TEXT MODE ──────────────────────────────────────────────────────────────
+// ── TEXT MODE ──
 function sendText() {
-  const inp = document.getElementById('textInput');
+  const inp  = document.getElementById('textInput');
   const text = inp.value.trim();
   if (!text) return;
   inp.value = '';
@@ -503,20 +491,20 @@ function sendText() {
   sendCommand(text);
 }
 
-// ── COMMAND ────────────────────────────────────────────────────────────────
+// ── COMMAND ──
 async function sendCommand(text) {
   const loadId = addMessage('assistant', null);
+  lastSpeakingMsgId = loadId;
   try {
     const r = await fetch(getServer() + '/command', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     });
-    const j = await r.json();
+    const j     = await r.json();
     const reply = j.response || j.reply || j.result || j.text || JSON.stringify(j);
     updateMessage(loadId, reply);
     scrollBottom();
-    // דבר בקול
     speak(reply);
   } catch(e) {
     updateMessage(loadId, '❌ שגיאה: ' + e.message);
@@ -524,7 +512,7 @@ async function sendCommand(text) {
   }
 }
 
-// ── MODE ───────────────────────────────────────────────────────────────────
+// ── MODE ──
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
@@ -533,16 +521,22 @@ function setMode(mode) {
   document.getElementById('debugRow').style.display  = mode === 'debug' ? 'flex' : 'none';
 }
 
-// ── UI ─────────────────────────────────────────────────────────────────────
+// ── UI ──
 function addMessage(type, content) {
   document.getElementById('emptyState')?.remove();
   const area = document.getElementById('transcriptArea');
-  const id = 'msg-' + (++msgCount);
-  const div = document.createElement('div');
-  div.className = 'msg ' + type; div.id = id;
+  const id   = 'msg-' + (++msgCount);
+  const div  = document.createElement('div');
+  div.className = 'msg ' + type;
+  div.id = id;
   const labels = { user: '👤 אתה', assistant: '🤖 נרי', system: '⚙️ מערכת' };
-  div.innerHTML = '<div class="msg-label">' + (labels[type]||type) + '</div><div class="bubble">' +
-    (content !== null ? escHtml(content) : '<div class="loading-dots"><span></span><span></span><span></span></div>') + '</div>';
+  div.innerHTML =
+    '<div class="msg-label">' + (labels[type] || type) + '</div>' +
+    '<div class="bubble">' +
+    (content !== null
+      ? escHtml(content)
+      : '<div class="loading-dots"><span></span><span></span><span></span></div>')
+    + '</div>';
   area.appendChild(div);
   scrollBottom();
   return id;
@@ -558,9 +552,11 @@ function setInterim(text) { document.getElementById('interim').textContent = tex
 function clearChat() {
   window.speechSynthesis?.cancel();
   setSpeaking(false);
+  lastSpeakingMsgId = null;
   document.getElementById('transcriptArea').innerHTML =
-    '<div class="empty-state" id="emptyState"><div class="empty-icon">🎙️</div>' +
-    '<p>לחץ על הכפתור ודבר,<br>נרי תעצור אוטומטית כשתשתוק</p></div>';
+    '<div class="empty-state" id="emptyState">' +
+    '<div class="empty-icon">🎙️</div>' +
+    '<p>לחץ על הכפתור ודבר<br>נרי תעצור אוטומטית כשתשתוק</p></div>';
   msgCount = 0;
 }
 
@@ -570,7 +566,9 @@ function scrollBottom() {
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
 }
 
 let toastTimer;
@@ -581,14 +579,14 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ── DEBUG ──────────────────────────────────────────────────────────────────
+// ── DEBUG ──
 async function testTranscribe() {
   addMessage('system', '🔧 בודק /transcribe...');
   const fd = new FormData();
   fd.append('file', new Blob([new Uint8Array(200)], { type: 'audio/webm' }), 'test.webm');
   try {
     const r = await fetch(getServer() + '/transcribe', { method: 'POST', body: fd });
-    addMessage('system', '/transcribe → ' + r.status + ': ' + (await r.text()).substring(0,150));
+    addMessage('system', '/transcribe → ' + r.status + ': ' + (await r.text()).substring(0, 150));
   } catch(e) { addMessage('system', '❌ ' + e.message); }
   scrollBottom();
 }
@@ -600,16 +598,14 @@ async function testCommand() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: 'שלום' })
     });
-    addMessage('system', '/command → ' + r.status + ': ' + (await r.text()).substring(0,200));
+    addMessage('system', '/command → ' + r.status + ': ' + (await r.text()).substring(0, 200));
   } catch(e) { addMessage('system', '❌ ' + e.message); }
   scrollBottom();
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
-// טען קולות TTS (iOS דורש אינטראקציה ראשונה)
+// ── INIT ──
 window.speechSynthesis?.getVoices();
 window.speechSynthesis?.addEventListener('voiceschanged', () => window.speechSynthesis.getVoices());
-
 checkServer();
 </script>
 </body>
