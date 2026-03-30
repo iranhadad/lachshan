@@ -317,7 +317,26 @@ async function checkServer() {
     }
   }
 }
-//- TTS -
+// ── TTS ──
+async function speak(text) {
+  try {
+    const r = await fetch(getServer() + '/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!r.ok) return;
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.onplay  = () => setSpeaking(true);
+    audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); };
+    audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); };
+    await audio.play();
+  } catch(e) {
+    console.error('TTS error:', e);
+  }
+}
 
 function setSpeaking(val) {
   speaking = val;
@@ -335,7 +354,7 @@ function setSpeaking(val) {
 
 // ── MIC BUTTON ──
 function handleMicBtn() {
-  if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+  if (speaking) { setSpeaking(false); return; }
   if (recording) { stopRecording(); return; }
   startRecording();
 }
