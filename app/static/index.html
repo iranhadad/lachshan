@@ -318,23 +318,31 @@ async function checkServer() {
   }
 }
 // ── TTS ──
+let currentAudio = null;
+
 async function speak(text) {
   try {
+    // יצירת Audio ריק — חייב להיות synchronous קרוב ללחיצה
+    currentAudio = new Audio();
+    currentAudio.onplay  = () => setSpeaking(true);
+    currentAudio.onended = () => setSpeaking(false);
+    currentAudio.onerror = () => setSpeaking(false);
+
     const r = await fetch(getServer() + '/speak', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     });
     if (!r.ok) return;
+
     const blob = await r.blob();
     const url  = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audio.onplay  = () => setSpeaking(true);
-    audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); };
-    audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); };
-    await audio.play();
+    currentAudio.src = url;
+    currentAudio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); };
+    await currentAudio.play();
   } catch(e) {
     console.error('TTS error:', e);
+    setSpeaking(false);
   }
 }
 
@@ -353,18 +361,13 @@ function setSpeaking(val) {
 }
 
 // ── MIC BUTTON ──
-let audioUnlocked = false;
-
-function unlockAudio() {
-  if (audioUnlocked) return;
-  const silent = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//tQxAADwAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
-  silent.play().catch(() => {});
-  audioUnlocked = true;
-}
-
 function handleMicBtn() {
-  unlockAudio();
-  if (speaking) { setSpeaking(false); return; }
+  // פתח את channel האודיו של iOS בלחיצה הסינכרונית
+  if (!currentAudio) {
+    currentAudio = new Audio();
+    currentAudio.play().catch(() => {});
+  }
+  if (speaking) { currentAudio?.pause(); setSpeaking(false); return; }
   if (recording) { stopRecording(); return; }
   startRecording();
 }
