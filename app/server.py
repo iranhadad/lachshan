@@ -12,6 +12,8 @@ from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 # ─── ודא שהייבוא עובד מתיקיית app/ ──────────────────────────────────────────
@@ -35,6 +37,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─── Static files (ממשק מובייל) ───────────────────────────────────────────────
+_STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(_STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+
+
+@app.get("/")
+def root():
+    """מגיש את ממשק המובייל."""
+    index_path = os.path.join(_STATIC_DIR, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path)
+    return {"message": "נרי API פעיל. אין ממשק מובייל — הנח index.html בתיקיית app/static/"}
+
 
 # ─── OpenAI client (lazy) ─────────────────────────────────────────────────────
 _openai_client: Optional[OpenAI] = None
