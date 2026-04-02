@@ -246,7 +246,7 @@ def add_event(instruction: str) -> str:
         }
 
         service = _get_service()
-        service.events().insert(calendarId="primary", body=event_body).execute()
+        service.events().insert(calendarId=GOOGLE_CALENDAR_ID, body=event_body).execute()
 
         # אישור בעברית
         day_offset = (start_dt.date() - datetime.now().date()).days
