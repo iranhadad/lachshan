@@ -17,10 +17,6 @@ _cached_creds = None  # singleton
 
 
 def get_credentials() -> service_account.Credentials:
-    """
-    מחזיר Google Service Account Credentials תקפים.
-    קורא מ-Environment Variable: GOOGLE_SERVICE_ACCOUNT_JSON
-    """
     global _cached_creds
 
     if _cached_creds and _cached_creds.valid:
@@ -29,8 +25,7 @@ def get_credentials() -> service_account.Credentials:
     sa_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
     if not sa_json:
         raise FileNotFoundError(
-            "משתנה סביבה GOOGLE_SERVICE_ACCOUNT_JSON לא מוגדר. "
-            "הוסף אותו ב-Railway Variables."
+            "משתנה סביבה GOOGLE_SERVICE_ACCOUNT_JSON לא מוגדר."
         )
 
     sa_info = json.loads(sa_json)
@@ -40,12 +35,3 @@ def get_credentials() -> service_account.Credentials:
 
     _cached_creds = creds
     return _cached_creds
-```
-
----
-
-**שלב ב — שתף את היומן עם ה-Service Account**
-
-פתח את ה-JSON שהורדת מ-Google Cloud, מצא את:
-```
-"client_email": "nari-railway@nari-assistant-489821.iam.gserviceaccount.com"
