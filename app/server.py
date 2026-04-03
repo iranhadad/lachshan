@@ -16,7 +16,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-# ─── ודא שהייבוא עובד מתיקיית app/ ──────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
 
 from config import OPENAI_API_KEY, LLM_MODEL, TRANSCRIPTION_MODEL
@@ -27,7 +26,6 @@ from trigger_engine.runner import run_trigger_engine_on_text
 
 from openai import OpenAI
 
-# ─── FastAPI app ──────────────────────────────────────────────────────────────
 app = FastAPI(title="נרי API", version="1.0")
 
 app.add_middleware(
@@ -38,7 +36,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─── Static files (ממשק מובייל) ───────────────────────────────────────────────
 _STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 if os.path.isdir(_STATIC_DIR):
     app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
@@ -46,14 +43,12 @@ if os.path.isdir(_STATIC_DIR):
 
 @app.get("/")
 def root():
-    """מגיש את ממשק המובייל."""
     index_path = os.path.join(_STATIC_DIR, "index.html")
     if os.path.isfile(index_path):
         return FileResponse(index_path)
     return {"message": "נרי API פעיל. אין ממשק מובייל — הנח index.html בתיקיית app/static/"}
 
 
-# ─── OpenAI client (lazy) ─────────────────────────────────────────────────────
 _openai_client: Optional[OpenAI] = None
 
 
@@ -64,12 +59,10 @@ def _get_client() -> OpenAI:
     return _openai_client
 
 
-# ─── Schemas ──────────────────────────────────────────────────────────────────
 class CommandRequest(BaseModel):
     text: str
 
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
 _NOISE_PHRASES = [
     "השיחה היא בעברית",
     "תודה על הצפייה",
@@ -83,7 +76,6 @@ _NOISE_PHRASES = [
 
 
 async def _save_upload_to_temp(file: UploadFile, suffix: str) -> str:
-    """שומר UploadFile לקובץ זמני ומחזיר את הנתיב."""
     content = await file.read()
     tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
     tmp.write(content)
@@ -93,7 +85,6 @@ async def _save_upload_to_temp(file: UploadFile, suffix: str) -> str:
 
 
 def _transcribe(file_path: str) -> str:
-    """Whisper STT – מחזיר תמלול עברי. מחזיר '' אם מזוהה ביטוי רעש נפוץ."""
     with open(file_path, "rb") as f:
         transcript = _get_client().audio.transcriptions.create(
             model=TRANSCRIPTION_MODEL,
@@ -118,7 +109,6 @@ _DATE_OFFSET_SYSTEM = (
 
 
 def _resolve_date_offset(command_text: str) -> int:
-    """שולח ל-LLM ומחזיר date_offset_days (מספר שלם). ברירת מחדל: 0."""
     try:
         today_str = datetime.now().strftime("%Y-%m-%d")
         system = f"היום הוא {today_str}. " + _DATE_OFFSET_SYSTEM
@@ -137,7 +127,6 @@ def _resolve_date_offset(command_text: str) -> int:
 
 
 def _ask_nari_free(command_text: str) -> str:
-    """LLM – עונה על שאלה/שיחה חופשית בעברית (ללא היסטוריה – stateless)."""
     try:
         current_time = datetime.now().strftime("%H:%M")
         current_date = datetime.now().strftime("%d/%m/%Y")
@@ -162,6 +151,7 @@ def _ask_nari_free(command_text: str) -> str:
 def _execute_command(text: str) -> str:
     """מנתב פקודה לפי כוונה ומחזיר תשובה כטקסט."""
     result = route_intent(text)
+    account = result.account  # ← חשבון שזוהה (ארגוני/אישי)
 
     if result.intent == Intent.STOP:
         return "מפסיקה."
@@ -174,30 +164,25 @@ def _execute_command(text: str) -> str:
 
     if result.intent == Intent.CALENDAR:
         offset = _resolve_date_offset(text)
-        return get_calendar_summary(offset)
+        return get_calendar_summary(offset, account=account)
 
     if result.intent == Intent.ADD_EVENT:
-        return add_event(text)
+        return add_event(text, account=account)
 
     if result.intent == Intent.READ_EMAIL:
-        return read_inbox()
+        return read_inbox(account=account)
 
     if result.intent == Intent.EMAIL:
-        draft = compose_draft(text)
+        draft = compose_draft(text, account=account)
         if draft is None:
             return "לא הצלחתי להכין את המייל."
         return draft_to_speech_preview(draft)
 
-    # CONVERSATION / UNKNOWN – fallback לשיחה חופשית
     return _ask_nari_free(text)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Endpoints
-# ═══════════════════════════════════════════════════════════════════════════════
 @app.post("/speak")
 def speak(req: CommandRequest):
-    """ממיר טקסט לאודיו עברי דרך OpenAI TTS ומחזיר mp3."""
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="טקסט ריק")
     try:
@@ -206,11 +191,12 @@ def speak(req: CommandRequest):
             voice="nova",
             input=req.text.strip(),
         )
-        audio_bytes = response.content
         from fastapi.responses import Response
-        return Response(content=audio_bytes, media_type="audio/mpeg")
+        return Response(content=response.content, media_type="audio/mpeg")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"שגיאת TTS: {exc}")
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -218,11 +204,9 @@ def health():
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
-    """מקבל קובץ קול (wav/webm), שולח ל-Whisper, מחזיר תמלול."""
     filename = file.filename or ""
     if not (filename.endswith(".wav") or filename.endswith(".webm")):
         raise HTTPException(status_code=400, detail="נדרש קובץ wav או webm")
-
     suffix = ".wav" if filename.endswith(".wav") else ".webm"
     tmp_path = await _save_upload_to_temp(file, suffix)
     try:
@@ -236,7 +220,6 @@ async def transcribe(file: UploadFile = File(...)):
 
 @app.post("/command")
 def command(req: CommandRequest):
-    """מקבל פקודה בטקסט, מנתב לפעולה המתאימה, מחזיר תשובה."""
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="טקסט ריק")
     try:
@@ -248,7 +231,6 @@ def command(req: CommandRequest):
 
 @app.post("/lachshan")
 async def lachshan(file: UploadFile = File(...)):
-    """מקבל קובץ קול, מריץ את trigger_engine, מחזיר whisper אם נחוצה."""
     filename = file.filename or ""
     suffix = ".wav" if filename.endswith(".wav") else ".webm"
     tmp_path = await _save_upload_to_temp(file, suffix)
