@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from config import OPENAI_API_KEY, LLM_MODEL, TRANSCRIPTION_MODEL
 from core.intent_router import route_intent, Intent
 from actions.calendar_action import get_calendar_summary, add_event
-from actions.gmail_action import compose_draft, draft_to_speech_preview, read_inbox
+from actions.gmail_action import compose_draft, draft_to_speech_preview, read_inbox, read_last_email
 from trigger_engine.runner import run_trigger_engine_on_text
 
 from openai import OpenAI
@@ -46,10 +46,26 @@ def root():
     index_path = os.path.join(_STATIC_DIR, "index.html")
     if os.path.isfile(index_path):
         return FileResponse(index_path)
-    return {"message": "נרי API פעיל. אין ממשק מובייל — הנח index.html בתיקיית app/static/"}
+    return {"message": "נרי API פעיל."}
 
 
 _openai_client: Optional[OpenAI] = None
+
+# ─── Conversation History ─────────────────────────────────────────────────────
+_MAX_HISTORY = 20  # מקסימום הודעות בזיכרון (10 זוגות user+assistant)
+_conversation_history: list[dict] = []
+
+
+def _add_to_history(role: str, content: str) -> None:
+    """מוסיף הודעה להיסטוריה, חותך אם עובר המקסימום."""
+    global _conversation_history
+    _conversation_history.append({"role": role, "content": content})
+    if len(_conversation_history) > _MAX_HISTORY:
+        _conversation_history = _conversation_history[-_MAX_HISTORY:]
+
+
+def _get_history() -> list[dict]:
+    return list(_conversation_history)
 
 
 def _get_client() -> OpenAI:
@@ -127,6 +143,7 @@ def _resolve_date_offset(command_text: str) -> int:
 
 
 def _ask_nari_free(command_text: str) -> str:
+    """LLM עם היסטוריית שיחה — מבין הקשר ושאלות המשך."""
     try:
         current_time = datetime.now().strftime("%H:%M")
         current_date = datetime.now().strftime("%d/%m/%Y")
@@ -134,14 +151,17 @@ def _ask_nari_free(command_text: str) -> str:
             f"השעה הנוכחית היא {current_time}. התאריך הוא {current_date}. "
             "אתה נרי, עוזרת אישית קולית חכמה. "
             "עני בעברית, בתשובות קצרות ומדויקות המתאימות לדיבור. "
-            "אל תשתמשי ברשימות או כוכביות – דברי בצורה טבעית."
+            "אל תשתמשי ברשימות או כוכביות — דברי בצורה טבעית. "
+            "זכרי את ההקשר של השיחה והשתמשי בו לענות על שאלות המשך."
         )
+
+        messages = [{"role": "system", "content": system_prompt}]
+        messages += _get_history()  # ← היסטוריית שיחה
+        messages.append({"role": "user", "content": command_text})
+
         resp = _get_client().chat.completions.create(
             model=LLM_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": command_text},
-            ],
+            messages=messages,
         )
         return resp.choices[0].message.content.strip()
     except Exception:
@@ -149,36 +169,50 @@ def _ask_nari_free(command_text: str) -> str:
 
 
 def _execute_command(text: str) -> str:
-    """מנתב פקודה לפי כוונה ומחזיר תשובה כטקסט."""
+    """מנתב פקודה לפי כוונה, שומר היסטוריה, ומחזיר תשובה."""
     result = route_intent(text)
-    account = result.account  # ← חשבון שזוהה (ארגוני/אישי)
+    account = result.account
+
+    response = ""
 
     if result.intent == Intent.STOP:
-        return "מפסיקה."
+        response = "מפסיקה."
 
-    if result.intent == Intent.ENABLE_LACHSHAN:
-        return "לחשן הופעל. אני מאזינה."
+    elif result.intent == Intent.ENABLE_LACHSHAN:
+        response = "לחשן הופעל. אני מאזינה."
 
-    if result.intent == Intent.DISABLE_LACHSHAN:
-        return "לחשן כובה."
+    elif result.intent == Intent.DISABLE_LACHSHAN:
+        response = "לחשן כובה."
 
-    if result.intent == Intent.CALENDAR:
+    elif result.intent == Intent.CALENDAR:
         offset = _resolve_date_offset(text)
-        return get_calendar_summary(offset, account=account)
+        response = get_calendar_summary(offset, account=account)
 
-    if result.intent == Intent.ADD_EVENT:
-        return add_event(text, account=account)
+    elif result.intent == Intent.ADD_EVENT:
+        response = add_event(text, account=account)
 
-    if result.intent == Intent.READ_EMAIL:
-        return read_inbox(account=account)
+    elif result.intent == Intent.READ_EMAIL:
+        response = read_inbox(account=account)
 
-    if result.intent == Intent.EMAIL:
+    elif result.intent == Intent.LAST_EMAIL:
+        response = read_last_email(account=account)
+
+    elif result.intent == Intent.EMAIL:
         draft = compose_draft(text, account=account)
         if draft is None:
-            return "לא הצלחתי להכין את המייל."
-        return draft_to_speech_preview(draft)
+            response = "לא הצלחתי להכין את המייל."
+        else:
+            response = draft_to_speech_preview(draft)
 
-    return _ask_nari_free(text)
+    else:
+        # CONVERSATION / UNKNOWN — עם היסטוריה
+        response = _ask_nari_free(text)
+
+    # ← שמור להיסטוריה (גם פקודות מובנות, לא רק שיחה חופשית)
+    _add_to_history("user", text)
+    _add_to_history("assistant", response)
+
+    return response
 
 
 @app.post("/speak")
